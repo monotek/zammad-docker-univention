@@ -8,3 +8,4 @@ Zammad Docker container for Univention server.
 * Optional env vars are:
   - ES_USER
   - ES_PASS
+  - ES_PROTO

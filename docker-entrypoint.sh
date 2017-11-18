@@ -28,7 +28,7 @@ if [ "$1" = 'zammad' ]; then
   fi
 
   # es config
-  bundle exec rails r "Setting.set('es_url', \"http://${ES_HOST}:9200\")"
+  bundle exec rails r "Setting.set('es_url', \"${ES_PROTO:-http}://${ES_HOST}:9200\")"
 
   if [ -n "${ES_USER}" ] && [ -n "${ES_PASS}" ]; then
     bundle exec rails r "Setting.set('es_user', \"${ES_USER}\")"
