@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -x
 
 if [ "$1" = 'zammad' ]; then
 
@@ -9,14 +9,7 @@ if [ "$1" = 'zammad' ]; then
     exit 1
   fi
 
-  # wait for postgres process coming up on zammad-postgresql
-  until (echo > /dev/tcp/${DB_HOST}/5432) &> /dev/null; do
-    echo "zammad railsserver waiting for postgresql server to be ready..."
-    sleep 5
-  done
-
-  echo "railsserver can access postgresql server now..."
-
+  # copy zammad
   rsync -a --delete --exclude 'storage/fs/*' ${ZAMMAD_TMP_DIR}/ ${ZAMMAD_DIR}
 
   cd ${ZAMMAD_DIR}
@@ -28,42 +21,36 @@ if [ "$1" = 'zammad' ]; then
   gem update bundler
   bundle install
 
-  chown -R ${ZAMMAD_USER}:${ZAMMAD_USER} ${ZAMMAD_DIR}
-
   # db mirgrate
-  exec gosu ${ZAMMAD_USER}:${ZAMMAD_USER} bundle exec rake db:migrate &> /dev/null
+  bundle exec rake db:migrate &> /dev/null
 
   if [ $? != 0 ]; then
     echo "creating db & searchindex..."
-    exec gosu ${ZAMMAD_USER}:${ZAMMAD_USER} bundle exec rake db:create
-    exec gosu ${ZAMMAD_USER}:${ZAMMAD_USER} bundle exec rake db:migrate
-    exec gosu ${ZAMMAD_USER}:${ZAMMAD_USER} bundle exec rake db:seed
+    bundle exec rake db:create
+    bundle exec rake db:migrate
+    bundle exec rake db:seed
   fi
 
   # es config
-  exec gosu ${ZAMMAD_USER}:${ZAMMAD_USER} bundle exec rails r "Setting.set('es_url', 'http://${ES_HOST}:9200')"
+  bundle exec rails r "Setting.set('es_url', 'http://${ES_HOST}:9200')"
 
   if [ -n "${ES_USER}" ] && [ -n "${ES_PASS}" ]; then
-    exec gosu ${ZAMMAD_USER}:${ZAMMAD_USER} bundle exec rails r "Setting.set('es_user', \"${ES_USER}\")"
-    exec gosu ${ZAMMAD_USER}:${ZAMMAD_USER} bundle exec rails r "Setting.set('es_password', \"${ES_PASS}\")"
+    bundle exec rails r "Setting.set('es_user', \"${ES_USER}\")"
+    bundle exec rails r "Setting.set('es_password', \"${ES_PASS}\")"
   fi
 
-  exec gosu ${ZAMMAD_USER}:${ZAMMAD_USER} bundle exec rake searchindex:rebuild
+  bundle exec rake searchindex:rebuild
 
   # start zammad
   echo "starting zammad...."
-  exec gosu ${ZAMMAD_USER}:${ZAMMAD_USER} bundle exec script/scheduler.rb run &>> ${ZAMMAD_DIR}/log/zammad.log &
-  exec gosu ${ZAMMAD_USER}:${ZAMMAD_USER} bundle exec script/websocket-server.rb -b 0.0.0.0 start &>> ${ZAMMAD_DIR}/log/zammad.log &
-  exec gosu ${ZAMMAD_USER}:${ZAMMAD_USER} bundle exec puma -b tcp://0.0.0.0:3000 -e ${RAILS_ENV} &>> ${ZAMMAD_DIR}/log/zammad.log &
+  chown -R ${ZAMMAD_USER}:${ZAMMAD_USER} ${ZAMMAD_DIR}
 
-  # wait for zammad processe coming up
-  until (echo > /dev/tcp/localhost/3000) &> /dev/null; do
-    echo "waiting for zammad to be ready..."
-    sleep 2
-  done
+  su -c "bundle exec script/websocket-server.rb -b 0.0.0.0 start &" ${ZAMMAD_USER}
+  su -c "bundle exec script/scheduler.rb start &" ${ZAMMAD_USER}
+  su -c "bundle exec puma -b tcp://0.0.0.0:3000 -e ${RAILS_ENV} &" ${ZAMMAD_USER}
 
   # show url
-  echo -e "\nZammad is ready! Visit http://localhost:3000 in your browser!"
+  echo -e "\nZammad will be ready in some seconds! Visit http://localhost:3000 in your browser!"
 
   sleep infinity
 

@@ -14,18 +14,9 @@ VOLUME /home/zammad
 
 # install dependencies, GOSU & zammad
 RUN BUILD_DEPENDENCIES="git build-essential libffi-dev libpq5 libpq-dev rsync" \
-    GOSU_DEPENDENCIES="ca-certificates wget" \
     set -ex \
-	  && apt-get update && apt-get install -y --force-yes --no-install-recommends ${BUILD_DEPENDENCIES} ${GOSU_DEPENDENCIES} && rm -rf /var/lib/apt/lists/* \
-	  && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
-	  && wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
-	  && export GNUPGHOME="$(mktemp -d)" \
-	  && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
-	  && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
-	  && rm -rf "${GNUPGHOME}" /usr/local/bin/gosu.asc \
-	  && chmod +x /usr/local/bin/gosu \
-	  && gosu nobody true \
-    && useradd -M -d ${ZAMMAD_DIR} -s /bin/bash ${ZAMMAD_USER} \
+	  && apt-get update && apt-get install -y --force-yes --no-install-recommends ${BUILD_DEPENDENCIES} && rm -rf /var/lib/apt/lists/* \
+	  && useradd -M -d ${ZAMMAD_DIR} -s /bin/bash ${ZAMMAD_USER} \
     && cd $(dirname ${ZAMMAD_TMP_DIR}) \
     && git clone --depth 1 -b "${GIT_BRANCH}" "${GIT_URL}" \
     && cd ${ZAMMAD_TMP_DIR} \
