@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ "$1" = 'zammad' ]; then
 
   if [ -z "${ES_HOST}" ] || [ -z "${DB_HOST}" ] || [ -z "${DB_USER}" ]  || [ -z "${DB_PASS}" ]  || [ -z "${DB_HOST}" ] || [ -z "${DB_NAME}" ]; then
