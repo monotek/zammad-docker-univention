@@ -35,9 +35,6 @@ if [ "$1" = 'zammad' ]; then
   su -c "bundle exec script/scheduler.rb start &" ${ZAMMAD_USER}
   su -c "bundle exec puma -b tcp://0.0.0.0:3000 -e ${RAILS_ENV} &" ${ZAMMAD_USER}
 
-  # show url
-  echo -e "\nZammad will be ready in some seconds! Visit http://localhost:3000 in your browser!"
-
   /usr/sbin/nginx -g 'daemon off;'
 
 fi
