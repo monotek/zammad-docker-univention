@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -es
+set -ex
 
 if [ "$1" = 'zammad' ]; then
 
