@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 if [ "$1" = 'zammad' ]; then
 
@@ -10,12 +10,15 @@ if [ "$1" = 'zammad' ]; then
   fi
 
   # change db config to DB env vars
-  #sed -e "s#.*adapter:.*#  adapter: postgresql#g" -e "s#.*database:.*#  database: ${DB_NAME}#g" -e "s#.*username:.*#  username: ${DB_USER}#g" -e "s#.*password:.*#  password: ${DB_PASS}\n  host: ${DB_HOST}\n#g" < config/database.yml.pkgr > config/database.yml
+  sed -e "s#.*adapter:.*#  adapter: postgresql#g" -e "s#.*database:.*#  database: ${DB_NAME}#g" -e "s#.*username:.*#  username: ${DB_USER}#g" -e "s#.*password:.*#  password: ${DB_PASS}\n  host: ${DB_HOST}\n#g" < config/database.yml.pkgr > config/database.yml
 
   # db mirgrate
+  set +e
   bundle exec rake db:migrate &> /dev/null
+  DB_CHECK="$?"
+  set -e
 
-  if [ $? != 0 ]; then
+  if [ "${DB_CHECK}" != "0" ]; then
     echo "creating db & searchindex..."
     bundle exec rake db:create
     bundle exec rake db:migrate
