@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -es
 
 if [ "$1" = 'zammad' ]; then
 
@@ -9,7 +9,14 @@ if [ "$1" = 'zammad' ]; then
     exit 1
   fi
 
+  echo ${ZAMMAD_DIR}
+
+  ls -al
+
   cd ${ZAMMAD_DIR}
+
+  ls -al
+  ls -al config
 
   # change db config to DB env vars
   sed -e "s#.*adapter:.*#  adapter: postgresql#g" -e "s#.*database:.*#  database: ${DB_NAME}#g" -e "s#.*username:.*#  username: ${DB_USER}#g" -e "s#.*password:.*#  password: ${DB_PASS}\n  host: ${DB_HOST}\n#g" < config/database.yml.pkgr > config/database.yml
