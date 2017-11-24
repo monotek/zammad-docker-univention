@@ -31,3 +31,5 @@ ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD [ "zammad" ]
 
 WORKDIR ${ZAMMAD_DIR}
+
+VOLUME ${ZAMMAD_DIR}/storage
