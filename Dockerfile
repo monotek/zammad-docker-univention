@@ -8,8 +8,6 @@ ENV RAILS_ENV production
 ENV GIT_URL https://github.com/zammad/zammad.git
 ENV GIT_BRANCH stable
 
-#VOLUME /opt/zammad/storage
-
 # install dependencies, GOSU & zammad
 RUN BUILD_DEPENDENCIES="git build-essential libffi-dev libpq5 libpq-dev nginx" \
     set -ex \
