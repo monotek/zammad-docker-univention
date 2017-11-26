@@ -20,6 +20,7 @@ RUN BUILD_DEPENDENCIES="git build-essential libffi-dev libpq5 libpq-dev nginx rs
     && bundle install --without test development mysql \
     && contrib/packager.io/fetch_locales.rb \
     && sed -e 's#.*adapter: postgresql#  adapter: nulldb#g' -e 's#.*username:.*#  username: postgres#g' -e 's#.*password:.*#  password: \n  host: zammad-postgresql\n#g' < config/database.yml.pkgr > config/database.yml \
+    && sed -e 's#server_name localhost#server_name _#g' -e 's#.*\(access\|error\)_log.*log;##g' < contrib/nginx/zammad.conf > /etc/nginx/sites-enabled/default \
     && bundle exec rake assets:precompile \
     && rm -r tmp/cache \
     && chown -R ${ZAMMAD_USER}:${ZAMMAD_USER} ${ZAMMAD_TMP_DIR}
