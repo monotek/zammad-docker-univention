@@ -9,12 +9,13 @@ if [ "$1" = 'zammad' ]; then
     exit 1
   fi
 
+  # update zammad files
   rsync -a --delete --exclude 'storage/fs/*' ${ZAMMAD_TMP_DIR}/ ${ZAMMAD_DIR}
-  cd ${ZAMMAD_DIR}
 
   # change db config to DB env vars
   sed -e "s#.*adapter:.*#  adapter: postgresql#g" -e "s#.*database:.*#  database: ${DB_NAME}#g" -e "s#.*username:.*#  username: ${DB_USER}#g" -e "s#.*password:.*#  password: ${DB_PASS}\n  host: ${DB_HOST}\n#g" < config/database.yml.pkgr > config/database.yml
 
+  # install / update zammad
   gem update bundler
   bundle install
 
@@ -25,7 +26,6 @@ if [ "$1" = 'zammad' ]; then
   set -e
 
   if [ "${DB_CHECK}" != "0" ]; then
-    echo "creating db & searchindex..."
     bundle exec rake db:create
     bundle exec rake db:migrate
     bundle exec rake db:seed
